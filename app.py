@@ -1,4 +1,4 @@
-# app.py - Streamlit (TANPA build ulang TF-IDF)
+# app.py - Streamlit (VERSI DIPERBAGUS DENGAN SEMUA FITUR)
 
 import streamlit as st
 import pandas as pd
@@ -13,37 +13,76 @@ from sklearn.metrics.pairwise import cosine_similarity
 st.set_page_config(
     page_title="Sistem Rekomendasi Wisata Indonesia",
     page_icon="🏝️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.title("🏝️ SISTEM REKOMENDASI WISATA INDONESIA")
-st.markdown("---")
+# Custom CSS untuk tampilan lebih baik
+st.markdown("""
+    <style>
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .main-header h1 {
+        color: white;
+        margin: 0;
+        font-size: 2.5rem;
+    }
+    .main-header p {
+        color: #f0f0f0;
+        margin-top: 0.5rem;
+    }
+    .card {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 5px solid #667eea;
+    }
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    .stat-box {
+        background-color: #667eea;
+        color: white;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Header
+st.markdown("""
+<div class="main-header">
+    <h1>🏝️ SISTEM REKOMENDASI WISATA INDONESIA</h1>
+    <p>Temukan destinasi wisata terbaik sesuai keinginan Anda</p>
+</div>
+""", unsafe_allow_html=True)
 
 # ========================================
 # LOAD MODEL YANG SUDAH DISIMPAN (CACHE)
 # ========================================
 @st.cache_resource
 def load_model():
-    # Load TF-IDF vectorizer
     with open('tfidf_vectorizer.pkl', 'rb') as f:
         tfidf_vectorizer = pickle.load(f)
-    
-    # Load TF-IDF matrix
     with open('tfidf_matrix.pkl', 'rb') as f:
         tfidf_matrix = pickle.load(f)
-    
-    # Load data clean
     df_clean = pd.read_csv('df_clean.csv')
-    
     return tfidf_vectorizer, tfidf_matrix, df_clean
 
-# Load semua model (hanya sekali)
 tfidf_vectorizer, tfidf_matrix, df_clean = load_model()
 
-st.sidebar.success(f"✅ Model loaded! Data: {len(df_clean)} wisata")
-
 # ========================================
-# PREPROCESSING UNTUK INPUT USER (MINIMAL)
+# PREPROCESSING UNTUK INPUT USER
 # ========================================
 def preprocess_query(teks):
     if pd.isna(teks):
@@ -77,7 +116,7 @@ def ekstrak_lokasi(user_input):
     return None, None
 
 # ========================================
-# FUNGSI REKOMENDASI (PAKAI MODEL YANG SUDAH LOAD)
+# FUNGSI REKOMENDASI
 # ========================================
 def cari_wisata(kategori=None, provinsi=None, nama_wisata=None, deskripsi=None, top_n=10):
     data = df_clean.copy()
@@ -162,99 +201,176 @@ def cari_wisata(kategori=None, provinsi=None, nama_wisata=None, deskripsi=None, 
 # ========================================
 # SIDEBAR
 # ========================================
-st.sidebar.header("🔍 Filter Pencarian")
-metode = st.sidebar.selectbox(
-    "Pilih Metode:",
-    ["Berdasarkan Kategori", "Berdasarkan Nama Wisata", "Berdasarkan Deskripsi"]
-)
-top_n = st.sidebar.slider("Jumlah Rekomendasi:", 5, 30, 10)
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("📊 Statistik")
-st.sidebar.write(f"Total Wisata: {len(df_clean)}")
-st.sidebar.write(f"Kategori: {df_clean['kategori'].nunique()}")
-st.sidebar.write(f"Provinsi: {df_clean['provinsi'].nunique()}")
+with st.sidebar:
+    st.markdown("## 🎯 PENGATURAN")
+    
+    metode = st.selectbox(
+        "📌 Pilih Metode Rekomendasi:",
+        ["🏷️ Berdasarkan Kategori", "📍 Berdasarkan Nama Wisata", "📝 Berdasarkan Deskripsi"]
+    )
+    
+    st.markdown("---")
+    
+    top_n = st.slider("📊 Jumlah Rekomendasi:", min_value=5, max_value=30, value=10, step=5)
+    
+    st.markdown("---")
+    
+    # Statistik
+    st.markdown("## 📊 STATISTIK")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Total Wisata", len(df_clean))
+    with col2:
+        st.metric("Jenis Kategori", df_clean['kategori'].nunique())
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Provinsi", df_clean['provinsi'].nunique())
+    with col2:
+        st.metric("Kota/Kab", df_clean['kota_kabupaten'].nunique())
 
 # ========================================
 # MAIN CONTENT
 # ========================================
-if metode == "Berdasarkan Kategori":
-    st.subheader("Rekomendasi Berdasarkan Kategori")
+
+# Pilih metode
+if metode == "🏷️ Berdasarkan Kategori":
+    st.markdown("## 🏷️ REKOMENDASI BERDASARKAN KATEGORI")
+    st.markdown("Pilih kategori wisata yang Anda minati.")
     
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 1])
     with col1:
         kategori = st.selectbox("Pilih Kategori:", sorted(df_clean['kategori'].unique()))
     with col2:
-        filter_lokasi = st.checkbox("Filter lokasi")
-        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi)
+        filter_lokasi = st.checkbox("📍 Filter berdasarkan lokasi")
+        lokasi = st.text_input("Masukkan kota atau provinsi:", disabled=not filter_lokasi, placeholder="Contoh: surabaya, bali, bandung")
     
-    if st.button("Cari", type="primary"):
-        with st.spinner("Mencari..."):
+    if st.button("🔍 Cari Rekomendasi", type="primary", use_container_width=True):
+        with st.spinner("Sedang mencari rekomendasi terbaik untuk Anda..."):
             prov_filter = ekstrak_lokasi(lokasi)[0] if filter_lokasi and lokasi else None
             hasil = cari_wisata(kategori=kategori, provinsi=prov_filter, top_n=top_n)
             
             if hasil is not None and len(hasil) > 0:
+                st.success(f"✨ Menampilkan {len(hasil)} rekomendasi wisata untuk Anda")
+                
                 for i, (_, row) in enumerate(hasil.iterrows(), 1):
-                    with st.expander(f"{i}. {row['nama_wisata']}"):
-                        st.write(f"**Kategori:** {row['kategori']}")
-                        st.write(f"**Provinsi:** {row['provinsi']}")
-                        st.write(f"**Kota/Kab:** {row['kota_kabupaten']}")
-                        st.write(f"**Skor:** {row['skor']:.4f}")
+                    with st.container():
+                        st.markdown(f"""
+                        <div class="card">
+                            <div class="card-title">{i}. {row['nama_wisata']}</div>
+                            <table style="width: 100%;">
+                                <tr><td width="30%"><b>Kategori</b></td><td>{row['kategori']}</td></tr>
+                                <tr><td><b>Provinsi</b></td><td>{row['provinsi']}</td></tr>
+                                <tr><td><b>Kota/Kabupaten</b></td><td>{row['kota_kabupaten']}</td></tr>
+                                <tr><td><b>Alamat</b></td><td>{str(row['alamat'])[:150]}...</td></tr>
+                                <tr><td><b>Skor Kecocokan</b></td><td>{row['skor']:.4f}</td></tr>
+                            </table>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        with st.expander("📖 Lihat Deskripsi Lengkap"):
+                            st.write(row['deskripsi_bersih'])
             else:
-                st.warning("Tidak ada rekomendasi.")
+                st.warning("⚠️ Tidak ada rekomendasi yang ditemukan.")
 
-elif metode == "Berdasarkan Nama Wisata":
-    st.subheader("Rekomendasi Berdasarkan Nama Wisata")
+elif metode == "📍 Berdasarkan Nama Wisata":
+    st.markdown("## 📍 REKOMENDASI BERDASARKAN NAMA WISATA")
+    st.markdown("Cari wisata yang mirip dengan destinasi favorit Anda.")
     
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 1])
     with col1:
-        nama_wisata = st.selectbox("Pilih Wisata:", sorted(df_clean['nama_wisata'].tolist()))
+        nama_wisata = st.selectbox("Pilih Wisata Referensi:", sorted(df_clean['nama_wisata'].tolist()))
     with col2:
-        filter_lokasi = st.checkbox("Filter lokasi")
-        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi)
+        filter_lokasi = st.checkbox("📍 Filter berdasarkan lokasi")
+        lokasi = st.text_input("Masukkan kota atau provinsi:", disabled=not filter_lokasi, placeholder="Contoh: surabaya, bali")
     
-    if st.button("Cari Wisata Mirip", type="primary"):
-        with st.spinner("Mencari..."):
+    if st.button("🔍 Cari Wisata Mirip", type="primary", use_container_width=True):
+        with st.spinner("Sedang mencari wisata yang mirip..."):
             prov_filter = ekstrak_lokasi(lokasi)[0] if filter_lokasi and lokasi else None
             
             target = df_clean[df_clean['nama_wisata'] == nama_wisata].iloc[0]
-            st.info(f"**Wisata referensi:** {nama_wisata} ({target['kategori']}, {target['provinsi']})")
+            
+            st.info(f"""
+            📌 **Wisata Referensi:** {nama_wisata}
+            - **Kategori:** {target['kategori']}
+            - **Provinsi:** {target['provinsi']}
+            - **Kota/Kab:** {target['kota_kabupaten']}
+            """)
             
             hasil = cari_wisata(nama_wisata=nama_wisata, provinsi=prov_filter, top_n=top_n)
             
             if hasil is not None and len(hasil) > 0:
+                st.success(f"✨ Menampilkan {len(hasil)} wisata yang mirip")
+                
                 for i, (_, row) in enumerate(hasil.iterrows(), 1):
-                    with st.expander(f"{i}. {row['nama_wisata']}"):
-                        st.write(f"**Kategori:** {row['kategori']}")
-                        st.write(f"**Provinsi:** {row['provinsi']}")
-                        st.write(f"**Skor:** {row['skor']:.4f}")
+                    with st.container():
+                        st.markdown(f"""
+                        <div class="card">
+                            <div class="card-title">{i}. {row['nama_wisata']}</div>
+                            <table style="width: 100%;">
+                                <tr><td width="30%"><b>Kategori</b></td><td>{row['kategori']}</td></tr>
+                                <tr><td><b>Provinsi</b></td><td>{row['provinsi']}</td></tr>
+                                <tr><td><b>Kota/Kabupaten</b></td><td>{row['kota_kabupaten']}</td></tr>
+                                <tr><td><b>Alamat</b></td><td>{str(row['alamat'])[:150]}...</td></tr>
+                                <tr><td><b>Skor Kemiripan</b></td><td>{row['skor']:.4f}</td></tr>
+                            </table>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        with st.expander("📖 Lihat Deskripsi Lengkap"):
+                            st.write(row['deskripsi_bersih'])
             else:
-                st.warning("Tidak ada wisata yang mirip.")
+                st.warning("⚠️ Tidak ada wisata lain yang mirip.")
 
 else:
-    st.subheader("Rekomendasi Berdasarkan Deskripsi")
+    st.markdown("## 📝 REKOMENDASI BERDASARKAN DESKRIPSI")
+    st.markdown("Tuliskan deskripsi wisata impian Anda, sistem akan mencari yang terbaik.")
     
-    st.markdown("Contoh: 'pantai dengan pasir putih dan ombak tenang'")
-    deskripsi = st.text_area("Deskripsi:", height=100)
+    st.info("💡 **Contoh deskripsi:**\n- 'pantai dengan pasir putih dan ombak yang tenang'\n- 'gunung yang cocok untuk pendaki pemula'\n- 'candi bersejarah dengan arsitektur kuno'")
     
-    col1, col2 = st.columns(2)
+    deskripsi = st.text_area("📝 Tuliskan deskripsi Anda:", height=120, placeholder="Contoh: pantai dengan pasir putih dan ombak tenang cocok untuk keluarga")
+    
+    col1, col2 = st.columns([1, 2])
     with col1:
-        filter_lokasi = st.checkbox("Filter lokasi")
-        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi)
+        filter_lokasi = st.checkbox("📍 Filter berdasarkan lokasi")
+        lokasi = st.text_input("Masukkan kota atau provinsi:", disabled=not filter_lokasi, placeholder="Contoh: surabaya, bali")
     
-    if st.button("Cari", type="primary"):
+    if st.button("🔍 Cari Rekomendasi", type="primary", use_container_width=True):
         if deskripsi:
-            with st.spinner("Mencari..."):
+            with st.spinner("Menganalisis deskripsi Anda dan mencari rekomendasi terbaik..."):
                 prov_filter = ekstrak_lokasi(lokasi)[0] if filter_lokasi and lokasi else None
                 hasil = cari_wisata(deskripsi=deskripsi, provinsi=prov_filter, top_n=top_n)
                 
                 if hasil is not None and len(hasil) > 0:
+                    st.success(f"✨ Menampilkan {len(hasil)} rekomendasi berdasarkan deskripsi Anda")
+                    
                     for i, (_, row) in enumerate(hasil.iterrows(), 1):
-                        with st.expander(f"{i}. {row['nama_wisata']}"):
-                            st.write(f"**Kategori:** {row['kategori']}")
-                            st.write(f"**Provinsi:** {row['provinsi']}")
-                            st.write(f"**Skor:** {row['skor']:.4f}")
+                        with st.container():
+                            st.markdown(f"""
+                            <div class="card">
+                                <div class="card-title">{i}. {row['nama_wisata']}</div>
+                                <table style="width: 100%;">
+                                    <tr><td width="30%"><b>Kategori</b></td><td>{row['kategori']}</td></tr>
+                                    <tr><td><b>Provinsi</b></td><td>{row['provinsi']}</td></tr>
+                                    <tr><td><b>Kota/Kabupaten</b></td><td>{row['kota_kabupaten']}</td></tr>
+                                    <tr><td><b>Alamat</b></td><td>{str(row['alamat'])[:150]}...</td></tr>
+                                    <tr><td><b>Skor Kecocokan</b></td><td>{row['skor']:.4f}</td></tr>
+                                </table>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            with st.expander("📖 Lihat Deskripsi Lengkap"):
+                                st.write(row['deskripsi_bersih'])
                 else:
-                    st.warning("Tidak ada rekomendasi.")
+                    st.warning("⚠️ Tidak ada rekomendasi yang ditemukan. Coba gunakan deskripsi yang lebih spesifik.")
         else:
-            st.error("Masukkan deskripsi.")
+            st.error("❌ Silakan masukkan deskripsi terlebih dahulu.")
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #888; padding: 1rem;">
+    <p>© 2025 Sistem Rekomendasi Wisata Indonesia | Content-Based Filtering dengan TF-IDF & Cosine Similarity</p>
+</div>
+""", unsafe_allow_html=True)
