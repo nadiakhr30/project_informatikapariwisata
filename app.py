@@ -1,4 +1,4 @@
-# app.py - Streamlit (FILTER LOKASI OTOMATIS UNTUK SEMUA METODE)
+# app.py - Streamlit (LOGIKA: KATEGORI = FILTER, SIFAT = COSINE SIMILARITY)
 
 import streamlit as st
 import pandas as pd
@@ -36,93 +36,36 @@ tfidf_vectorizer, tfidf_matrix, df_clean = load_model()
 st.sidebar.success(f"✅ Model loaded! Data: {len(df_clean)} wisata")
 
 # ========================================
-# MAPPING KOTA KE PROVINSI (LENGKAP)
+# MAPPING KOTA KE PROVINSI
 # ========================================
 kota_ke_provinsi = {
-    # Jawa Timur
-    'surabaya': 'Jawa Timur', 'malang': 'Jawa Timur', 'kediri': 'Jawa Timur', 'blitar': 'Jawa Timur',
-    'madiun': 'Jawa Timur', 'banyuwangi': 'Jawa Timur', 'probolinggo': 'Jawa Timur', 'pasuruan': 'Jawa Timur',
-    'mojokerto': 'Jawa Timur', 'jember': 'Jawa Timur', 'situbondo': 'Jawa Timur', 'bondowoso': 'Jawa Timur',
-    'lumajang': 'Jawa Timur', 'nganjuk': 'Jawa Timur', 'ponorogo': 'Jawa Timur', 'trenggalek': 'Jawa Timur',
-    'tulungagung': 'Jawa Timur', 'pacitan': 'Jawa Timur', 'magetan': 'Jawa Timur', 'ngawi': 'Jawa Timur',
-    'bojonegoro': 'Jawa Timur', 'tuban': 'Jawa Timur', 'lamongan': 'Jawa Timur', 'gresik': 'Jawa Timur',
-    'sidoarjo': 'Jawa Timur', 'jombang': 'Jawa Timur',
-    
-    # Jawa Tengah
-    'semarang': 'Jawa Tengah', 'solo': 'Jawa Tengah', 'surakarta': 'Jawa Tengah', 'magelang': 'Jawa Tengah',
-    'pekalongan': 'Jawa Tengah', 'tegal': 'Jawa Tengah', 'cilacap': 'Jawa Tengah', 'purwokerto': 'Jawa Tengah',
-    'kudus': 'Jawa Tengah', 'jepara': 'Jawa Tengah', 'demak': 'Jawa Tengah', 'kendal': 'Jawa Tengah',
-    'batang': 'Jawa Tengah', 'banjarnegara': 'Jawa Tengah', 'kebumen': 'Jawa Tengah', 'purbalingga': 'Jawa Tengah',
-    'banyumas': 'Jawa Tengah', 'wonosobo': 'Jawa Tengah', 'temanggung': 'Jawa Tengah', 'boyolali': 'Jawa Tengah',
-    'sragen': 'Jawa Tengah', 'karanganyar': 'Jawa Tengah', 'wonogiri': 'Jawa Tengah', 'sukoharjo': 'Jawa Tengah',
-    'klaten': 'Jawa Tengah', 'pati': 'Jawa Tengah', 'rembang': 'Jawa Tengah', 'blora': 'Jawa Tengah',
-    
-    # Jawa Barat
-    'bandung': 'Jawa Barat', 'bogor': 'Jawa Barat', 'bekasi': 'Jawa Barat', 'depok': 'Jawa Barat',
-    'cimahi': 'Jawa Barat', 'tasikmalaya': 'Jawa Barat', 'ciamis': 'Jawa Barat', 'banjar': 'Jawa Barat',
-    'sukabumi': 'Jawa Barat', 'cirebon': 'Jawa Barat', 'indramayu': 'Jawa Barat', 'majalengka': 'Jawa Barat',
-    'kuningan': 'Jawa Barat', 'garut': 'Jawa Barat', 'sumedang': 'Jawa Barat', 'purwakarta': 'Jawa Barat',
-    'subang': 'Jawa Barat', 'karawang': 'Jawa Barat',
-    
-    # Bali
-    'denpasar': 'Bali', 'badung': 'Bali', 'gianyar': 'Bali', 'tabanan': 'Bali',
-    'klungkung': 'Bali', 'bangli': 'Bali', 'karangasem': 'Bali', 'buleleng': 'Bali', 
-    'jembrana': 'Bali', 'kuta': 'Bali', 'seminyak': 'Bali', 'nusa dua': 'Bali', 'ubud': 'Bali',
-    
-    # Yogyakarta
-    'yogyakarta': 'Daerah Istimewa Yogyakarta', 'jogja': 'Daerah Istimewa Yogyakarta', 
-    'sleman': 'Daerah Istimewa Yogyakarta', 'bantul': 'Daerah Istimewa Yogyakarta', 
-    'gunungkidul': 'Daerah Istimewa Yogyakarta', 'kulon progo': 'Daerah Istimewa Yogyakarta',
-    
-    # Sumatera
-    'medan': 'Sumatera Utara', 'binjai': 'Sumatera Utara', 'pematangsiantar': 'Sumatera Utara',
-    'palembang': 'Sumatera Selatan', 'lubuklinggau': 'Sumatera Selatan', 'pagar alam': 'Sumatera Selatan',
-    'padang': 'Sumatera Barat', 'bukittinggi': 'Sumatera Barat', 'payakumbuh': 'Sumatera Barat',
-    'pekanbaru': 'Riau', 'dumai': 'Riau', 'batam': 'Kepulauan Riau', 'tanjungpinang': 'Kepulauan Riau',
-    'bandar lampung': 'Lampung', 'metro': 'Lampung', 'jambi': 'Jambi', 'sungai penuh': 'Jambi',
-    'bengkulu': 'Bengkulu', 'pangkalpinang': 'Kepulauan Bangka Belitung',
-    
-    # Sulawesi
-    'makassar': 'Sulawesi Selatan', 'parepare': 'Sulawesi Selatan', 'palopo': 'Sulawesi Selatan',
-    'manado': 'Sulawesi Utara', 'bitung': 'Sulawesi Utara', 'tomohon': 'Sulawesi Utara', 'kotamobagu': 'Sulawesi Utara',
-    'palu': 'Sulawesi Tengah', 'kendari': 'Sulawesi Tenggara', 'baubau': 'Sulawesi Tenggara',
-    'gorontalo': 'Gorontalo', 'mamuju': 'Sulawesi Barat',
-    
-    # Kalimantan
-    'balikpapan': 'Kalimantan Timur', 'samarinda': 'Kalimantan Timur', 'bontang': 'Kalimantan Timur',
-    'pontianak': 'Kalimantan Barat', 'singkawang': 'Kalimantan Barat',
-    'banjarmasin': 'Kalimantan Selatan', 'banjarbaru': 'Kalimantan Selatan',
-    'palangkaraya': 'Kalimantan Tengah', 'tanjungselor': 'Kalimantan Utara',
-    
-    # Maluku & Papua
-    'ambon': 'Maluku', 'ternate': 'Maluku Utara', 'tidore': 'Maluku Utara',
-    'jayapura': 'Papua', 'merauke': 'Papua Selatan', 'manokwari': 'Papua Barat',
-    
-    # Nusa Tenggara
-    'mataram': 'Nusa Tenggara Barat', 'bima': 'Nusa Tenggara Barat',
-    'kupang': 'Nusa Tenggara Timur', 'ende': 'Nusa Tenggara Timur', 'maumere': 'Nusa Tenggara Timur',
-    
-    # Lainnya
-    'jakarta': 'DKI Jakarta', 'tangerang': 'Banten', 'cilegon': 'Banten', 'serang': 'Banten',
-    'aceh': 'Aceh', 'banda aceh': 'Aceh', 'lhokseumawe': 'Aceh', 'langsa': 'Aceh'
+    'surabaya': 'Jawa Timur', 'malang': 'Jawa Timur', 'banyuwangi': 'Jawa Timur',
+    'semarang': 'Jawa Tengah', 'solo': 'Jawa Tengah', 'magelang': 'Jawa Tengah',
+    'bandung': 'Jawa Barat', 'bogor': 'Jawa Barat', 'bekasi': 'Jawa Barat',
+    'denpasar': 'Bali', 'kuta': 'Bali', 'ubud': 'Bali',
+    'yogyakarta': 'Daerah Istimewa Yogyakarta', 'jogja': 'Daerah Istimewa Yogyakarta',
+    'sleman': 'Daerah Istimewa Yogyakarta', 'bantul': 'Daerah Istimewa Yogyakarta',
+    'jakarta': 'DKI Jakarta', 'tangerang': 'Banten'
 }
 
 def ekstrak_lokasi_dari_input(user_input):
-    """Ekstrak lokasi dari input user (kota atau provinsi) Returns: (provinsi, kota)"""
     user_lower = user_input.lower()
-    
     for kota, provinsi in kota_ke_provinsi.items():
         if kota in user_lower:
             return provinsi, kota.title()
-    
     for prov in df_clean['provinsi'].unique():
         if prov.lower() in user_lower:
             return prov, None
-    
     return None, None
 
+def ekstrak_kategori_dari_input(user_input):
+    user_lower = user_input.lower()
+    for kat in df_clean['kategori'].unique():
+        if kat in user_lower:
+            return kat
+    return None
+
 def preprocess_query(teks):
-    """Preprocessing untuk deskripsi"""
     if pd.isna(teks):
         return ""
     teks = str(teks).lower()
@@ -132,14 +75,12 @@ def preprocess_query(teks):
     return teks
 
 def cari_wisata(kategori=None, provinsi=None, nama_wisata=None, deskripsi=None, top_n=10):
-    """Rekomendasi wisata dengan Cosine Similarity - FILTER OTOMATIS"""
     
     if sum([x is not None for x in [kategori, nama_wisata, deskripsi]]) != 1:
         return None
     
     data = df_clean.copy()
     
-    # Filter provinsi jika ada
     if provinsi:
         data = data[data['provinsi'] == provinsi]
         if len(data) == 0:
@@ -200,24 +141,11 @@ def cari_wisata(kategori=None, provinsi=None, nama_wisata=None, deskripsi=None, 
             return hasil
         return None
     
-    # METODE DESKRIPSI (DENGAN FILTER OTOMATIS)
+    # METODE DESKRIPSI
     if deskripsi:
         teks_bersih = preprocess_query(deskripsi)
         if len(teks_bersih) < 3:
             return None
-        
-        # EKSTRAK LOKASI OTOMATIS DARI DESKRIPSI
-        prov_terdeteksi, kota_terdeteksi = ekstrak_lokasi_dari_input(deskripsi)
-        
-        # FILTER DATA BERDASARKAN LOKASI YANG TERDETEKSI
-        if prov_terdeteksi:
-            data = data[data['provinsi'] == prov_terdeteksi]
-            if len(data) > 0:
-                st.info(f"📍 Otomatis filter: {prov_terdeteksi}" + (f" (kota: {kota_terdeteksi})" if kota_terdeteksi else ""))
-        
-        if len(data) == 0:
-            st.warning(f"Tidak ada wisata di lokasi yang dimaksud. Menampilkan semua hasil.")
-            data = df_clean.copy()
         
         query = tfidf_vectorizer.transform([teks_bersih])
         idx_list = data.index.tolist()
@@ -274,14 +202,31 @@ with st.sidebar:
 # ========================================
 # MAIN CONTENT
 # ========================================
+
 if metode == "Kategori":
     st.markdown("## REKOMENDASI BERDASARKAN KATEGORI")
     
     kategori = st.selectbox("Pilih Kategori:", sorted(df_clean['kategori'].unique()))
     
+    col1, col2 = st.columns(2)
+    with col1:
+        filter_lokasi = st.checkbox("Filter berdasarkan lokasi")
+    with col2:
+        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi, placeholder="Contoh: yogyakarta, bali")
+    
     if st.button("Cari", type="primary", use_container_width=True):
         with st.spinner("Mencari rekomendasi..."):
-            hasil = cari_wisata(kategori=kategori, top_n=top_n)
+            prov_filter = None
+            if filter_lokasi and lokasi:
+                prov_filter, _ = ekstrak_lokasi_dari_input(lokasi)
+            
+            hasil = cari_wisata(kategori=kategori, provinsi=prov_filter, top_n=top_n)
+            
+            if prov_filter:
+                st.info(f"📍 Menampilkan {kategori} di {prov_filter}")
+            else:
+                st.info(f"📍 Menampilkan semua {kategori} di seluruh Indonesia")
+            
             tampilkan_hasil(hasil, f"Rekomendasi Kategori {kategori.upper()}")
 
 elif metode == "Nama Wisata":
@@ -289,26 +234,92 @@ elif metode == "Nama Wisata":
     
     nama_wisata = st.selectbox("Pilih Wisata:", sorted(df_clean['nama_wisata'].tolist()))
     
+    col1, col2 = st.columns(2)
+    with col1:
+        filter_lokasi = st.checkbox("Filter berdasarkan lokasi")
+    with col2:
+        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi, placeholder="Contoh: yogyakarta, bali")
+    
     if st.button("Cari Wisata Mirip", type="primary", use_container_width=True):
         with st.spinner("Mencari wisata yang mirip..."):
+            prov_filter = None
+            if filter_lokasi and lokasi:
+                prov_filter, _ = ekstrak_lokasi_dari_input(lokasi)
+            
             target = df_clean[df_clean['nama_wisata'] == nama_wisata].iloc[0]
             st.info(f"**Wisata Referensi:** {nama_wisata} ({target['kategori']}, {target['provinsi']})")
             
-            hasil = cari_wisata(nama_wisata=nama_wisata, top_n=top_n)
+            if prov_filter:
+                st.info(f"📍 Filter lokasi: {prov_filter}")
+            
+            hasil = cari_wisata(nama_wisata=nama_wisata, provinsi=prov_filter, top_n=top_n)
             tampilkan_hasil(hasil, f"Wisata Mirip {nama_wisata}")
 
 else:
     st.markdown("## REKOMENDASI BERDASARKAN DESKRIPSI")
     
-    st.info("💡 **Contoh:** 'air terjun di malang', 'museum di yogyakarta', 'gunung tertinggi di jawa timur'")
+    st.info("💡 **Contoh:** 'gunung tertinggi', 'pantai terindah', 'museum bersejarah', 'air terjun di malang'")
     
     deskripsi = st.text_area("Tuliskan deskripsi Anda:", height=100)
     
     if st.button("Cari", type="primary", use_container_width=True):
         if deskripsi:
             with st.spinner("Menganalisis deskripsi Anda..."):
-                hasil = cari_wisata(deskripsi=deskripsi, top_n=top_n)
-                tampilkan_hasil(hasil, "Rekomendasi Berdasarkan Deskripsi")
+                
+                # EKSTRAK INFORMASI
+                kata_kunci = preprocess_query(deskripsi)
+                kategori_terdeteksi = ekstrak_kategori_dari_input(deskripsi)
+                provinsi_terdeteksi, kota_terdeteksi = ekstrak_lokasi_dari_input(deskripsi)
+                
+                hasil = None
+                
+                # LOGIKA:
+                # 1. Jika ada kata sifat (tinggi, indah, bersejarah, dll) -> cari di SEMUA WISATA
+                # 2. Jika hanya kategori -> cari spesifik kategori
+                # 3. Jika ada lokasi -> filter berdasarkan lokasi
+                
+                kata_sifat = ['tinggi', 'tertinggi', 'indah', 'terindah', 'bersejarah', 'populer', 'terkenal', 'bagus']
+                ada_kata_sifat = any(kata in kata_kunci for kata in kata_sifat)
+                
+                if ada_kata_sifat:
+                    # Cari di SEMUA WISATA berdasarkan deskripsi
+                    st.info("📝 Mencari berdasarkan kata kunci di semua wisata...")
+                    if provinsi_terdeteksi:
+                        st.info(f"📍 Filter lokasi: {provinsi_terdeteksi}")
+                        hasil = cari_wisata(deskripsi=kata_kunci, provinsi=provinsi_terdeteksi, top_n=top_n)
+                    else:
+                        hasil = cari_wisata(deskripsi=kata_kunci, top_n=top_n)
+                    
+                    tampilkan_hasil(hasil, "Rekomendasi Berdasarkan Deskripsi")
+                
+                elif kategori_terdeteksi:
+                    # Cari berdasarkan KATEGORI
+                    st.info(f"🏷️ Mendeteksi kategori: {kategori_terdeteksi}")
+                    if provinsi_terdeteksi:
+                        st.info(f"📍 Filter lokasi: {provinsi_terdeteksi}")
+                        hasil = cari_wisata(kategori=kategori_terdeteksi, provinsi=provinsi_terdeteksi, top_n=top_n)
+                    else:
+                        hasil = cari_wisata(kategori=kategori_terdeteksi, top_n=top_n)
+                    
+                    if hasil is not None and len(hasil) > 0:
+                        judul = f"Rekomendasi {kategori_terdeteksi.upper()}"
+                        if provinsi_terdeteksi:
+                            judul += f" di {provinsi_terdeteksi.upper()}"
+                        tampilkan_hasil(hasil, judul)
+                    else:
+                        st.warning(f"Tidak ada {kategori_terdeteksi} yang ditemukan.")
+                
+                else:
+                    # Cari berdasarkan DESKRIPSI BEBAS
+                    st.info("📝 Mencari berdasarkan deskripsi bebas...")
+                    if provinsi_terdeteksi:
+                        st.info(f"📍 Filter lokasi: {provinsi_terdeteksi}")
+                        hasil = cari_wisata(deskripsi=kata_kunci, provinsi=provinsi_terdeteksi, top_n=top_n)
+                    else:
+                        hasil = cari_wisata(deskripsi=kata_kunci, top_n=top_n)
+                    
+                    tampilkan_hasil(hasil, "Rekomendasi Berdasarkan Deskripsi")
+                
         else:
             st.error("Masukkan deskripsi terlebih dahulu.")
 
