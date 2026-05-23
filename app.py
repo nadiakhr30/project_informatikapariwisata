@@ -1,4 +1,4 @@
-# app.py - Streamlit (LOGIKA: KATEGORI = FILTER, SIFAT = COSINE SIMILARITY)
+# app.py - Streamlit (Modern Design dengan Bootstrap Icons, Tanpa Emoji)
 
 import streamlit as st
 import pandas as pd
@@ -12,12 +12,161 @@ from sklearn.metrics.pairwise import cosine_similarity
 # ========================================
 st.set_page_config(
     page_title="Sistem Rekomendasi Wisata Indonesia",
-    page_icon="🏝️",
-    layout="wide"
+    page_icon="🌏",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.title("🏝️ SISTEM REKOMENDASI WISATA INDONESIA")
-st.markdown("---")
+# ========================================
+# CUSTOM CSS - MODERN DESIGN
+# ========================================
+st.markdown("""
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+<style>
+    /* Main container */
+    .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    /* Header Modern */
+    .modern-header {
+        background: linear-gradient(135deg, #0f2b3d 0%, #1a4a6f 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .modern-header h1 {
+        color: white;
+        font-size: 2.5rem;
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+    }
+    .modern-header p {
+        color: rgba(255,255,255,0.9);
+        margin-top: 0.75rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Card Result */
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #1a4a6f;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    .result-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a4a6f;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .result-detail {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e9ecef;
+    }
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    .detail-item i {
+        color: #1a4a6f;
+        width: 20px;
+        font-size: 1rem;
+    }
+    .score-badge {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    /* Sidebar Modern */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    /* Stat Box */
+    .stat-box {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1a4a6f;
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    /* Button */
+    .stButton > button {
+        background: linear-gradient(135deg, #1a4a6f, #0f2b3d);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Info Box */
+    .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #1a4a6f;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 1.5rem;
+        color: #6c757d;
+        font-size: 0.85rem;
+        border-top: 1px solid #e9ecef;
+        margin-top: 2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ========================================
 # LOAD MODEL
@@ -32,8 +181,6 @@ def load_model():
     return tfidf_vectorizer, tfidf_matrix, df_clean
 
 tfidf_vectorizer, tfidf_matrix, df_clean = load_model()
-
-st.sidebar.success(f"✅ Model loaded! Data: {len(df_clean)} wisata")
 
 # ========================================
 # MAPPING KOTA KE PROVINSI
@@ -159,63 +306,114 @@ def cari_wisata(kategori=None, provinsi=None, nama_wisata=None, deskripsi=None, 
     
     return None
 
-def tampilkan_hasil(hasil, judul):
+def tampilkan_hasil_modern(hasil, judul):
     if hasil is None or len(hasil) == 0:
         st.warning("Tidak ada rekomendasi yang ditemukan.")
         return
     
-    st.success(f"Menampilkan {len(hasil)} rekomendasi")
+    st.markdown(f'<div style="margin: 1rem 0;"><span class="score-badge"><i class="bi bi-check-circle-fill"></i> {len(hasil)} Rekomendasi Ditemukan</span></div>', unsafe_allow_html=True)
     
     for i, (_, row) in enumerate(hasil.iterrows(), 1):
-        with st.expander(f"{i}. {row['nama_wisata']}"):
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write(f"**Kategori:** {row['kategori']}")
-                st.write(f"**Provinsi:** {row['provinsi']}")
-                st.write(f"**Kota/Kab:** {row['kota_kabupaten']}")
-            with col2:
-                st.write(f"**Skor:** {row['skor']:.4f}")
-            if pd.notna(row.get('alamat')):
-                st.write(f"**Alamat:** {row['alamat'][:200]}...")
-            with st.expander("📖 Deskripsi Lengkap"):
-                st.write(row['deskripsi_bersih'])
+        skor_persen = row['skor'] * 100
+        
+        st.markdown(f"""
+        <div class="result-card">
+            <div class="result-title">
+                <i class="bi bi-geo-alt-fill"></i> {i}. {row['nama_wisata']}
+                <span class="score-badge" style="margin-left: auto;">
+                    <i class="bi bi-star-fill"></i> {skor_persen:.1f}%
+                </span>
+            </div>
+            <div class="result-detail">
+                <div class="detail-item"><i class="bi bi-tag-fill"></i> <strong>Kategori:</strong> {row['kategori']}</div>
+                <div class="detail-item"><i class="bi bi-building"></i> <strong>Provinsi:</strong> {row['provinsi']}</div>
+                <div class="detail-item"><i class="bi bi-pin-map-fill"></i> <strong>Kota/Kab:</strong> {row['kota_kabupaten']}</div>
+                <div class="detail-item"><i class="bi bi-graph-up"></i> <strong>Skor:</strong> {row['skor']:.4f}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if pd.notna(row.get('alamat')):
+            st.markdown(f'<div class="detail-item"><i class="bi bi-house-door"></i> <strong>Alamat:</strong> {str(row["alamat"])[:150]}...</div>', unsafe_allow_html=True)
+        
+        with st.expander("📖 Lihat Deskripsi Lengkap"):
+            st.write(row['deskripsi_bersih'])
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ========================================
-# SIDEBAR
+# HEADER MODERN
+# ========================================
+st.markdown("""
+<div class="modern-header">
+    <h1><i class="bi bi-compass"></i> SISTEM REKOMENDASI WISATA INDONESIA</h1>
+    <p>Temukan destinasi wisata terbaik sesuai keinginan Anda</p>
+</div>
+""", unsafe_allow_html=True)
+
+# ========================================
+# SIDEBAR MODERN
 # ========================================
 with st.sidebar:
-    st.markdown("## 🎯 PENGATURAN")
+    st.markdown("## <i class='bi bi-sliders2'></i> Pengaturan", unsafe_allow_html=True)
     
     metode = st.selectbox(
-        "Pilih Metode:",
-        ["Kategori", "Nama Wisata", "Deskripsi"]
+        "Pilih Metode",
+        ["Kategori", "Nama Wisata", "Deskripsi"],
+        format_func=lambda x: f"📌 {x}"
     )
     
-    top_n = st.slider("Jumlah Rekomendasi:", 5, 30, 10, 5)
+    top_n = st.slider("Jumlah Rekomendasi", 5, 30, 10, 5)
     
     st.markdown("---")
-    st.markdown("## 📊 STATISTIK")
-    st.metric("Total Wisata", len(df_clean))
-    st.metric("Kategori", df_clean['kategori'].nunique())
-    st.metric("Provinsi", df_clean['provinsi'].nunique())
-
-# ========================================
-# MAIN CONTENT
-# ========================================
-
-if metode == "Kategori":
-    st.markdown("## REKOMENDASI BERDASARKAN KATEGORI")
-    
-    kategori = st.selectbox("Pilih Kategori:", sorted(df_clean['kategori'].unique()))
+    st.markdown("## <i class='bi bi-bar-chart-stats'></i> Statistik", unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        filter_lokasi = st.checkbox("Filter berdasarkan lokasi")
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{len(df_clean)}</div>
+            <div class="stat-label">Total Wisata</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi, placeholder="Contoh: yogyakarta, bali")
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{df_clean['kategori'].nunique()}</div>
+            <div class="stat-label">Kategori</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    if st.button("Cari", type="primary", use_container_width=True):
-        with st.spinner("Mencari rekomendasi..."):
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{df_clean['provinsi'].nunique()}</div>
+            <div class="stat-label">Provinsi</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-number">{len(df_clean)}</div>
+            <div class="stat-label">Destinasi</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ========================================
+# MAIN CONTENT - KATEGORI
+# ========================================
+if metode == "Kategori":
+    st.markdown("## <i class='bi bi-tags'></i> Rekomendasi Berdasarkan Kategori", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        kategori = st.selectbox("Pilih Kategori", sorted(df_clean['kategori'].unique()))
+    with col2:
+        filter_lokasi = st.checkbox("Filter berdasarkan lokasi")
+        lokasi = st.text_input("Kota/Provinsi", disabled=not filter_lokasi, placeholder="Contoh: yogyakarta, bali")
+    
+    if st.button("Cari Rekomendasi", use_container_width=True):
+        with st.spinner("Mencari rekomendasi terbaik..."):
             prov_filter = None
             if filter_lokasi and lokasi:
                 prov_filter, _ = ekstrak_lokasi_dari_input(lokasi)
@@ -223,80 +421,86 @@ if metode == "Kategori":
             hasil = cari_wisata(kategori=kategori, provinsi=prov_filter, top_n=top_n)
             
             if prov_filter:
-                st.info(f"📍 Menampilkan {kategori} di {prov_filter}")
+                st.markdown(f'<div class="info-box"><i class="bi bi-info-circle-fill"></i> Menampilkan {kategori} di {prov_filter}</div>', unsafe_allow_html=True)
             else:
-                st.info(f"📍 Menampilkan semua {kategori} di seluruh Indonesia")
+                st.markdown(f'<div class="info-box"><i class="bi bi-info-circle-fill"></i> Menampilkan semua {kategori} di seluruh Indonesia</div>', unsafe_allow_html=True)
             
-            tampilkan_hasil(hasil, f"Rekomendasi Kategori {kategori.upper()}")
+            tampilkan_hasil_modern(hasil, f"Rekomendasi Kategori {kategori.upper()}")
 
+# ========================================
+# MAIN CONTENT - NAMA WISATA
+# ========================================
 elif metode == "Nama Wisata":
-    st.markdown("## REKOMENDASI BERDASARKAN NAMA WISATA")
+    st.markdown("## <i class='bi bi-search'></i> Rekomendasi Berdasarkan Nama Wisata", unsafe_allow_html=True)
     
-    nama_wisata = st.selectbox("Pilih Wisata:", sorted(df_clean['nama_wisata'].tolist()))
-    
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2, 1])
     with col1:
-        filter_lokasi = st.checkbox("Filter berdasarkan lokasi")
+        nama_wisata = st.selectbox("Pilih Wisata Referensi", sorted(df_clean['nama_wisata'].tolist()))
     with col2:
-        lokasi = st.text_input("Kota/Provinsi:", disabled=not filter_lokasi, placeholder="Contoh: yogyakarta, bali")
+        filter_lokasi = st.checkbox("Filter berdasarkan lokasi")
+        lokasi = st.text_input("Kota/Provinsi", disabled=not filter_lokasi, placeholder="Contoh: yogyakarta, bali")
     
-    if st.button("Cari Wisata Mirip", type="primary", use_container_width=True):
+    if st.button("Cari Wisata Mirip", use_container_width=True):
         with st.spinner("Mencari wisata yang mirip..."):
             prov_filter = None
             if filter_lokasi and lokasi:
                 prov_filter, _ = ekstrak_lokasi_dari_input(lokasi)
             
             target = df_clean[df_clean['nama_wisata'] == nama_wisata].iloc[0]
-            st.info(f"**Wisata Referensi:** {nama_wisata} ({target['kategori']}, {target['provinsi']})")
             
-            if prov_filter:
-                st.info(f"📍 Filter lokasi: {prov_filter}")
+            st.markdown(f"""
+            <div class="info-box">
+                <i class="bi bi-pin-map-fill"></i> <strong>Wisata Referensi:</strong> {nama_wisata}
+                <br><i class="bi bi-tag-fill"></i> Kategori: {target['kategori']} | <i class="bi bi-building"></i> Provinsi: {target['provinsi']}
+            </div>
+            """, unsafe_allow_html=True)
             
             hasil = cari_wisata(nama_wisata=nama_wisata, provinsi=prov_filter, top_n=top_n)
-            tampilkan_hasil(hasil, f"Wisata Mirip {nama_wisata}")
+            tampilkan_hasil_modern(hasil, f"Wisata Mirip {nama_wisata}")
 
+# ========================================
+# MAIN CONTENT - DESKRIPSI
+# ========================================
 else:
-    st.markdown("## REKOMENDASI BERDASARKAN DESKRIPSI")
+    st.markdown("## <i class='bi bi-pencil-square'></i> Rekomendasi Berdasarkan Deskripsi", unsafe_allow_html=True)
     
-    st.info("💡 **Contoh:** 'gunung tertinggi', 'pantai terindah', 'museum bersejarah', 'air terjun di malang'")
+    st.markdown("""
+    <div class="info-box">
+        <i class="bi bi-lightbulb-fill"></i> <strong>Contoh deskripsi:</strong><br>
+        • "gunung tertinggi"<br>
+        • "pantai terindah"<br>
+        • "museum bersejarah"<br>
+        • "air terjun di malang"
+    </div>
+    """, unsafe_allow_html=True)
     
-    deskripsi = st.text_area("Tuliskan deskripsi Anda:", height=100)
+    deskripsi = st.text_area("Tuliskan deskripsi Anda", height=100, placeholder="Contoh: gunung tertinggi di jawa timur")
     
-    if st.button("Cari", type="primary", use_container_width=True):
+    if st.button("Cari Rekomendasi", use_container_width=True):
         if deskripsi:
             with st.spinner("Menganalisis deskripsi Anda..."):
-                
-                # EKSTRAK INFORMASI
                 kata_kunci = preprocess_query(deskripsi)
                 kategori_terdeteksi = ekstrak_kategori_dari_input(deskripsi)
                 provinsi_terdeteksi, kota_terdeteksi = ekstrak_lokasi_dari_input(deskripsi)
                 
                 hasil = None
-                
-                # LOGIKA:
-                # 1. Jika ada kata sifat (tinggi, indah, bersejarah, dll) -> cari di SEMUA WISATA
-                # 2. Jika hanya kategori -> cari spesifik kategori
-                # 3. Jika ada lokasi -> filter berdasarkan lokasi
-                
                 kata_sifat = ['tinggi', 'tertinggi', 'indah', 'terindah', 'bersejarah', 'populer', 'terkenal', 'bagus']
                 ada_kata_sifat = any(kata in kata_kunci for kata in kata_sifat)
                 
                 if ada_kata_sifat:
-                    # Cari di SEMUA WISATA berdasarkan deskripsi
-                    st.info("📝 Mencari berdasarkan kata kunci di semua wisata...")
+                    st.markdown('<div class="info-box"><i class="bi bi-search-heart"></i> Mencari berdasarkan kata kunci di semua wisata...</div>', unsafe_allow_html=True)
                     if provinsi_terdeteksi:
-                        st.info(f"📍 Filter lokasi: {provinsi_terdeteksi}")
+                        st.markdown(f'<div class="info-box"><i class="bi bi-geo-alt-fill"></i> Filter lokasi: {provinsi_terdeteksi}</div>', unsafe_allow_html=True)
                         hasil = cari_wisata(deskripsi=kata_kunci, provinsi=provinsi_terdeteksi, top_n=top_n)
                     else:
                         hasil = cari_wisata(deskripsi=kata_kunci, top_n=top_n)
                     
-                    tampilkan_hasil(hasil, "Rekomendasi Berdasarkan Deskripsi")
+                    tampilkan_hasil_modern(hasil, "Rekomendasi Berdasarkan Deskripsi")
                 
                 elif kategori_terdeteksi:
-                    # Cari berdasarkan KATEGORI
-                    st.info(f"🏷️ Mendeteksi kategori: {kategori_terdeteksi}")
+                    st.markdown(f'<div class="info-box"><i class="bi bi-tag-fill"></i> Mendeteksi kategori: {kategori_terdeteksi}</div>', unsafe_allow_html=True)
                     if provinsi_terdeteksi:
-                        st.info(f"📍 Filter lokasi: {provinsi_terdeteksi}")
+                        st.markdown(f'<div class="info-box"><i class="bi bi-geo-alt-fill"></i> Filter lokasi: {provinsi_terdeteksi}</div>', unsafe_allow_html=True)
                         hasil = cari_wisata(kategori=kategori_terdeteksi, provinsi=provinsi_terdeteksi, top_n=top_n)
                     else:
                         hasil = cari_wisata(kategori=kategori_terdeteksi, top_n=top_n)
@@ -305,23 +509,29 @@ else:
                         judul = f"Rekomendasi {kategori_terdeteksi.upper()}"
                         if provinsi_terdeteksi:
                             judul += f" di {provinsi_terdeteksi.upper()}"
-                        tampilkan_hasil(hasil, judul)
+                        tampilkan_hasil_modern(hasil, judul)
                     else:
                         st.warning(f"Tidak ada {kategori_terdeteksi} yang ditemukan.")
                 
                 else:
-                    # Cari berdasarkan DESKRIPSI BEBAS
-                    st.info("📝 Mencari berdasarkan deskripsi bebas...")
+                    st.markdown('<div class="info-box"><i class="bi bi-search"></i> Mencari berdasarkan deskripsi bebas...</div>', unsafe_allow_html=True)
                     if provinsi_terdeteksi:
-                        st.info(f"📍 Filter lokasi: {provinsi_terdeteksi}")
+                        st.markdown(f'<div class="info-box"><i class="bi bi-geo-alt-fill"></i> Filter lokasi: {provinsi_terdeteksi}</div>', unsafe_allow_html=True)
                         hasil = cari_wisata(deskripsi=kata_kunci, provinsi=provinsi_terdeteksi, top_n=top_n)
                     else:
                         hasil = cari_wisata(deskripsi=kata_kunci, top_n=top_n)
                     
-                    tampilkan_hasil(hasil, "Rekomendasi Berdasarkan Deskripsi")
-                
+                    tampilkan_hasil_modern(hasil, "Rekomendasi Berdasarkan Deskripsi")
         else:
             st.error("Masukkan deskripsi terlebih dahulu.")
 
-st.markdown("---")
-st.markdown("<p style='text-align:center; color:#888;'>Sistem Rekomendasi Wisata Indonesia | Content-Based Filtering</p>", unsafe_allow_html=True)
+# ========================================
+# FOOTER
+# ========================================
+st.markdown("""
+<div class="footer">
+    <i class="bi bi-tree-fill"></i> Sistem Rekomendasi Wisata Indonesia 
+    | Content-Based Filtering dengan TF-IDF & Cosine Similarity
+    | <i class="bi bi-database"></i> Data Wisata Nusantara
+</div>
+""", unsafe_allow_html=True)
