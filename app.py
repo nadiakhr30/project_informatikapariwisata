@@ -465,13 +465,7 @@ else:
     st.markdown("## <i class='bi bi-pencil-square'></i> Rekomendasi Berdasarkan Deskripsi", unsafe_allow_html=True)
     
     st.markdown("""
-    <div class="info-box">
-        <i class="bi bi-lightbulb-fill"></i> <strong>Contoh deskripsi:</strong><br>
-        • "gunung tertinggi"<br>
-        • "pantai terindah"<br>
-        • "museum bersejarah"<br>
-        • "air terjun di malang"
-    </div>
+    
     """, unsafe_allow_html=True)
     
     deskripsi = st.text_area("Tuliskan deskripsi Anda", height=100, placeholder="Contoh: gunung tertinggi di jawa timur")
