@@ -475,7 +475,10 @@ else:
     
     """, unsafe_allow_html=True)
     
-    deskripsi = st.text_area("Tuliskan deskripsi Anda", height=100")
+   deskripsi = st.text_area(
+    "Tuliskan deskripsi Anda",
+    height=100
+)
     
     if st.button("Cari Rekomendasi", use_container_width=True):
         if deskripsi:
