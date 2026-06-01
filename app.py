@@ -469,16 +469,19 @@ elif metode == "Nama Wisata":
 # MAIN CONTENT - DESKRIPSI
 # ========================================
 else:
-    st.markdown("## <i class='bi bi-pencil-square'></i> Rekomendasi Berdasarkan Deskripsi", unsafe_allow_html=True)
-    
+    st.markdown(
+        "## <i class='bi bi-pencil-square'></i> Rekomendasi Berdasarkan Deskripsi",
+        unsafe_allow_html=True
+    )
+
     st.markdown("""
     
     """, unsafe_allow_html=True)
-    
-   deskripsi = st.text_area(
-    "Tuliskan deskripsi Anda",
-    height=100
-)
+
+    deskripsi = st.text_area(
+        "Tuliskan deskripsi Anda",
+        height=100
+    )
     
     if st.button("Cari Rekomendasi", use_container_width=True):
         if deskripsi:
