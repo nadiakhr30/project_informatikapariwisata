@@ -362,7 +362,14 @@ with st.sidebar:
         format_func=lambda x: f"📌 {x}"
     )
     
-    top_n = st.slider("Jumlah Rekomendasi", 5, 30, 10, 5)
+    top_n = st.number_input(
+    "Jumlah Rekomendasi",
+    min_value=3,
+    max_value=100,
+    value=10,
+    step=1,
+    help="Minimal 3 rekomendasi"
+)
     
     st.markdown("---")
     st.markdown("## <i class='bi bi-bar-chart-stats'></i> Statistik", unsafe_allow_html=True)
@@ -468,7 +475,7 @@ else:
     
     """, unsafe_allow_html=True)
     
-    deskripsi = st.text_area("Tuliskan deskripsi Anda", height=100, placeholder="Contoh: gunung tertinggi di jawa timur")
+    deskripsi = st.text_area("Tuliskan deskripsi Anda", height=100")
     
     if st.button("Cari Rekomendasi", use_container_width=True):
         if deskripsi:
